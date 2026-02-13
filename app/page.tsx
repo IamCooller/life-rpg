@@ -1,65 +1,143 @@
-import Image from "next/image";
+import { getMe, getMySkills, getMyQuests, getDashboardStats } from "@/lib/data";
+import { GameCard } from "@/components/ui/game-card";
+import { XPBar } from "@/components/ui/xp-bar";
+import { Swords, Target, Skull, Flame, TrendingUp, Trophy, Zap } from "lucide-react";
 
-export default function Home() {
+export default async function DashboardPage() {
+  let me: Awaited<ReturnType<typeof getMe>> = null;
+  let skills: Awaited<ReturnType<typeof getMySkills>> = [];
+  let quests: Awaited<ReturnType<typeof getMyQuests>> = [];
+  let stats: Awaited<ReturnType<typeof getDashboardStats>> = {
+    questCount: 0,
+    missionsDone: 0,
+    bossesActive: 0,
+    bestStreak: 0,
+    todayXP: 0,
+    weekXP: 0,
+  };
+
+  try {
+    [me, skills, quests, stats] = await Promise.all([
+      getMe(),
+      getMySkills(),
+      getMyQuests(),
+      getDashboardStats(),
+    ]);
+  } catch {
+    // Keep defaults
+  }
+
+  const userName = me?.name?.split(" ")[0] ?? "Герой";
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Привет, {userName}!</h1>
+          <p className="text-muted">Готов к новым свершениям?</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        {stats.todayXP > 0 && (
+          <div className="flex items-center gap-1 rounded-xl bg-accent-gold/20 px-3 py-1.5 text-accent-gold">
+            <Zap size={16} />
+            <span className="text-sm font-bold">+{stats.todayXP} XP сегодня</span>
+          </div>
+        )}
+      </div>
+
+      <GameCard glow="purple" className="relative overflow-hidden">
+        <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-accent-purple/10 blur-3xl" />
+        <div className="flex items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-cyan to-accent-purple text-2xl font-bold shadow-lg">
+            {me?.name?.[0] ?? "?"}
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold">{me?.name ?? "Герой"}</h2>
+              <span className="rounded-full bg-accent-gold/20 px-2 py-0.5 text-xs font-medium text-accent-gold">
+                {me?.title ?? "Новичок"}
+              </span>
+            </div>
+            <p className="text-sm text-muted">Уровень {me?.level ?? 0}</p>
+            <div className="mt-2">
+              <XPBar current={me?.currentXP ?? 0} max={me?.requiredXP ?? 100} glow />
+            </div>
+          </div>
         </div>
-      </main>
+      </GameCard>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {[
+          { label: "Квесты", value: stats.questCount, icon: Swords, color: "cyan" },
+          { label: "Выполнено", value: stats.missionsDone, icon: Target, color: "purple" },
+          { label: "Боссы", value: stats.bossesActive, icon: Skull, color: "red" },
+          { label: "Лучший стрик", value: stats.bestStreak, icon: Flame, color: "gold" },
+        ].map((stat) => (
+          <GameCard key={stat.label}>
+            <div className="flex items-center gap-3">
+              <div className={`flex h-10 w-10 items-center justify-center rounded-lg bg-accent-${stat.color}/15`}>
+                <stat.icon size={20} className={`text-accent-${stat.color}`} />
+              </div>
+              <div>
+                <p className="text-xs text-muted">{stat.label}</p>
+                <p className="text-lg font-bold">{stat.value}</p>
+              </div>
+            </div>
+          </GameCard>
+        ))}
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <GameCard>
+          <h3 className="mb-4 flex items-center gap-2 font-bold">
+            <TrendingUp size={18} className="text-accent-cyan" />
+            Скиллы
+          </h3>
+          <div className="space-y-3">
+            {skills.map((skill) => (
+              <div key={skill.category}>
+                <div className="flex items-center justify-between text-sm">
+                  <span>{skill.name}</span>
+                  <span className="text-xs text-muted">Ур. {skill.level}</span>
+                </div>
+                <XPBar
+                  current={skill.xp % 100 || (skill.xp > 0 ? 100 : 0)}
+                  max={100}
+                  color={skill.color}
+                  showLabel={false}
+                  size="sm"
+                />
+              </div>
+            ))}
+          </div>
+        </GameCard>
+
+        <GameCard>
+          <h3 className="mb-4 flex items-center gap-2 font-bold">
+            <Trophy size={18} className="text-accent-gold" />
+            Квесты на сегодня
+          </h3>
+          {quests.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <p className="text-4xl">⚔️</p>
+              <p className="mt-2 text-sm text-muted">Создай квесты на странице Квесты!</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {quests.slice(0, 5).map((quest) => (
+                <div key={quest.id} className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2">
+                  <div className={`h-3 w-3 rounded-full ${quest.completedToday ? "bg-accent-green" : "bg-card-border"}`} />
+                  <span className={`flex-1 text-sm ${quest.completedToday ? "text-muted line-through" : ""}`}>
+                    {quest.title}
+                  </span>
+                  {quest.streak.current > 0 && (
+                    <span className="text-xs text-accent-gold">{quest.streak.current}🔥</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </GameCard>
+      </div>
     </div>
   );
 }
