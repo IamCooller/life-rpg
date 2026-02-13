@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getMyMissions } from "@/lib/data";
 import { MissionsClient } from "./missions-client";
 

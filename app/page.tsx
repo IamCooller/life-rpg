@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getMe, getMySkills, getMyQuests, getDashboardStats } from "@/lib/data";
 import { GameCard } from "@/components/ui/game-card";
 import { XPBar } from "@/components/ui/xp-bar";

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getMyQuests } from "@/lib/data";
 import { QuestsClient } from "./quests-client";
 

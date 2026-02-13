@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getMyBosses } from "@/lib/data";
 import { BossesClient } from "./bosses-client";
 

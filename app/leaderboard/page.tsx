@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getLeaderboard, getMe } from "@/lib/data";
 import { GameCard } from "@/components/ui/game-card";
 import { Trophy, Medal } from "lucide-react";
