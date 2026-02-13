@@ -29,7 +29,7 @@ export async function getMe() {
   const progress = getLevelProgress(user.totalXP ?? 0);
   return {
     id: user._id.toString(),
-    name: user.name,
+    name: user.name || user.email?.split("@")[0] || "Игрок",
     email: user.email,
     image: user.image,
     totalXP: user.totalXP ?? 0,
@@ -313,7 +313,7 @@ export async function getAnalyticsData() {
 
 export async function getLeaderboard() {
   await connectDB();
-  const users = await User.find({ totalXP: { $gt: 0 } })
+  const users = await User.find({})
     .sort({ totalXP: -1 })
     .limit(20)
     .lean();
@@ -321,7 +321,7 @@ export async function getLeaderboard() {
   return users.map((u, i) => ({
     rank: i + 1,
     id: u._id.toString(),
-    name: u.name,
+    name: u.name || u.email?.split("@")[0] || "Игрок",
     image: u.image,
     totalXP: u.totalXP ?? 0,
     level: getLevel(u.totalXP ?? 0),
