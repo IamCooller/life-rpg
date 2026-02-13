@@ -12,6 +12,12 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Dummy env vars for build (real ones come from .env.production at runtime)
+ENV MONGODB_URI=mongodb://placeholder:27017/placeholder
+ENV AUTH_SECRET=build-secret-placeholder-not-used-at-runtime
+ENV NEXT_PUBLIC_APP_URL=https://rpg.hashlab.digital
+
 RUN pnpm build
 
 FROM base AS runner

@@ -1,35 +1,11 @@
 services:
   app:
-    build: .
+    image: ghcr.io/iamcooller/life-rpg:latest
+    container_name: life-rpg
     ports:
-      - "3000:3000"
+      - "3333:3000"
     env_file:
-      - .env.local
-    depends_on:
-      - mongo
+      - .env.production
     restart: unless-stopped
-
-  mongo:
-    image: mongo:7
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    command: mongod --replSet rs0
-    restart: unless-stopped
-
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - certbot_data:/etc/letsencrypt
-    depends_on:
-      - app
-    restart: unless-stopped
-
-volumes:
-  mongodb_data:
-  certbot_data:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
