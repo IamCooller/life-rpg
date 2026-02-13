@@ -4,11 +4,10 @@ import {
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
-  PolarRadiusAxis,
   Radar,
   ResponsiveContainer,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -27,7 +26,6 @@ interface AnalyticsProps {
   };
 }
 
-// Activity heatmap component (GitHub-style)
 function ActivityHeatmap({
   data,
 }: {
@@ -44,14 +42,11 @@ function ActivityHeatmap({
     return "#164e63";
   }
 
-  // Group data by weeks (columns)
   const weeks: { date: string; count: number }[][] = [];
   let currentWeek: { date: string; count: number }[] = [];
 
   for (let i = 0; i < data.length; i++) {
     const dayOfWeek = new Date(data[i].date).getDay();
-
-    // Start new week on Sunday
     if (dayOfWeek === 0 && currentWeek.length > 0) {
       weeks.push(currentWeek);
       currentWeek = [];
@@ -60,34 +55,32 @@ function ActivityHeatmap({
   }
   if (currentWeek.length > 0) weeks.push(currentWeek);
 
-  // Show last ~52 weeks
-  const visibleWeeks = weeks.slice(-52);
+  // On mobile show fewer weeks to fit screen
+  const visibleWeeks = weeks.slice(-26);
 
   return (
-    <div className="overflow-x-auto">
-      <div className="flex gap-[3px]" style={{ minWidth: "max-content" }}>
+    <div className="overflow-x-auto -mx-4 px-4">
+      <div className="flex gap-[2px] sm:gap-[3px]" style={{ minWidth: "max-content" }}>
         {visibleWeeks.map((week, wi) => (
-          <div key={wi} className="flex flex-col gap-[3px]">
+          <div key={wi} className="flex flex-col gap-[2px] sm:gap-[3px]">
             {week.map((day, di) => (
               <div
                 key={di}
-                className="h-3 w-3 rounded-sm transition-colors"
+                className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-sm"
                 style={{ backgroundColor: getColor(day.count) }}
-                title={`${day.date}: ${day.count} completions`}
+                title={`${day.date}: ${day.count}`}
               />
             ))}
           </div>
         ))}
       </div>
-      <div className="mt-2 flex items-center gap-2 text-xs text-muted">
+      <div className="mt-2 flex items-center gap-1.5 text-[10px] sm:text-xs text-muted">
         <span>Меньше</span>
         {[0, 0.25, 0.5, 0.75, 1].map((level) => (
           <div
             key={level}
-            className="h-3 w-3 rounded-sm"
-            style={{
-              backgroundColor: getColor(level * maxCount),
-            }}
+            className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-sm"
+            style={{ backgroundColor: getColor(level * maxCount) }}
           />
         ))}
         <span>Больше</span>
@@ -103,44 +96,39 @@ export function AnalyticsClient({
   stats,
 }: AnalyticsProps) {
   return (
-    <div className="space-y-6">
-      {/* Stats summary */}
-      <div className="grid grid-cols-3 gap-3">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Stats — 2 cols on mobile, 3 on desktop */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <GameCard>
-          <p className="text-2xl font-bold text-accent-cyan">
+          <p className="text-xl sm:text-2xl font-bold text-accent-cyan">
             {stats.totalXPEarned.toLocaleString()}
           </p>
-          <p className="text-xs text-muted">Всего XP</p>
+          <p className="text-[10px] sm:text-xs text-muted">Всего XP</p>
         </GameCard>
         <GameCard>
-          <p className="text-2xl font-bold text-accent-purple">
+          <p className="text-xl sm:text-2xl font-bold text-accent-purple">
             {stats.totalCompletions}
           </p>
-          <p className="text-xs text-muted">Выполнений квестов</p>
+          <p className="text-[10px] sm:text-xs text-muted">Выполнений</p>
         </GameCard>
-        <GameCard>
-          <p className="text-2xl font-bold text-accent-gold">
+        <GameCard className="col-span-2 sm:col-span-1">
+          <p className="text-xl sm:text-2xl font-bold text-accent-gold">
             {stats.totalMissions}
           </p>
-          <p className="text-xs text-muted">Завершено миссий</p>
+          <p className="text-[10px] sm:text-xs text-muted">Миссий</p>
         </GameCard>
       </div>
 
       {/* Skill radar chart */}
       <GameCard glow="purple">
-        <h3 className="mb-4 font-bold">Баланс скиллов</h3>
-        <div className="h-72">
+        <h3 className="mb-3 font-bold text-sm sm:text-base">Баланс скиллов</h3>
+        <div className="h-56 sm:h-72 -mx-2">
           <ResponsiveContainer width="100%" height="100%">
-            <RadarChart data={radarData}>
+            <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
               <PolarGrid stroke="#1e1e2e" />
               <PolarAngleAxis
                 dataKey="category"
-                tick={{ fill: "#94a3b8", fontSize: 12 }}
-              />
-              <PolarRadiusAxis
-                angle={30}
-                domain={[0, "auto"]}
-                tick={{ fill: "#64748b", fontSize: 10 }}
+                tick={{ fill: "#94a3b8", fontSize: 10 }}
               />
               <Radar
                 name="XP"
@@ -155,21 +143,29 @@ export function AnalyticsClient({
         </div>
       </GameCard>
 
-      {/* Weekly XP line chart */}
+      {/* Weekly XP area chart */}
       <GameCard glow="cyan">
-        <h3 className="mb-4 font-bold">XP по неделям</h3>
-        <div className="h-64">
+        <h3 className="mb-3 font-bold text-sm sm:text-base">XP по неделям</h3>
+        <div className="h-48 sm:h-64 -mx-2">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={weeklyXP}>
+            <AreaChart data={weeklyXP}>
+              <defs>
+                <linearGradient id="xpGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e1e2e" />
               <XAxis
                 dataKey="week"
-                tick={{ fill: "#94a3b8", fontSize: 11 }}
+                tick={{ fill: "#94a3b8", fontSize: 10 }}
                 tickLine={false}
+                interval="preserveStartEnd"
               />
               <YAxis
-                tick={{ fill: "#94a3b8", fontSize: 11 }}
+                tick={{ fill: "#94a3b8", fontSize: 10 }}
                 tickLine={false}
+                width={30}
               />
               <Tooltip
                 contentStyle={{
@@ -177,25 +173,27 @@ export function AnalyticsClient({
                   border: "1px solid #1e1e2e",
                   borderRadius: "12px",
                   color: "#e2e8f0",
+                  fontSize: "12px",
                 }}
                 labelStyle={{ color: "#94a3b8" }}
               />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="xp"
                 stroke="#06b6d4"
                 strokeWidth={2}
-                dot={{ fill: "#06b6d4", r: 4 }}
-                activeDot={{ r: 6, fill: "#06b6d4" }}
+                fill="url(#xpGrad)"
+                dot={false}
+                activeDot={{ r: 4, fill: "#06b6d4" }}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </GameCard>
 
       {/* Activity heatmap */}
       <GameCard>
-        <h3 className="mb-4 font-bold">Активность за год</h3>
+        <h3 className="mb-3 font-bold text-sm sm:text-base">Активность</h3>
         <ActivityHeatmap data={heatmapData} />
       </GameCard>
     </div>

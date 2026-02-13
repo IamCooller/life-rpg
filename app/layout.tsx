@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/layout/providers";
 import { AppShell } from "@/components/layout/app-shell";
+import { RegisterSW } from "@/components/register-sw";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -22,6 +23,10 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Life RPG",
+  },
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/apple-touch-icon.png",
   },
 };
 
@@ -45,6 +50,7 @@ export default function RootLayout({
         <Providers>
           <AppShell>{children}</AppShell>
         </Providers>
+        <RegisterSW />
       </body>
     </html>
   );
